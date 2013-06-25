@@ -3,7 +3,7 @@ vagrant-node
 
 This plugin allows you to set a computer with a virtual environment configured with Vagrant to be controlled and managed remotely. The remote machine must have installed the controller plugin, [Vagrant-NodeMaster](https://github.com/fjsanpedro/vagrant-nodemaster/tree/master/lib/vagrant-nodemaster).
 
-With this plugin installed the Vagrant environment can perform requests, that you usually can execute locally, but commanded by a remote computer.
+With this plugin installed the Vagrant environment can perform requests, that you usually can execute locally, but commanded by a remote computer. This service is provided through a REST API that this plugin exposes.
 
 This plugin has been developed in the context of the Catedra SAES of the University of Murcia(Spain).
 
