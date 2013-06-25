@@ -13,7 +13,7 @@ $ vagrant plugin install vagrant-node
 ```
 
 ##Usage
-In order to start the service provided with *vagrant-node* do:
+In order to start the service provided by *vagrant-node* do:
 
 ```bash
 $ vagrant nodeserver start [port]
@@ -33,5 +33,5 @@ $ vagrant nodeserver stop
 
 ## To-Do:
 * Beacuse the plugin is still under development, there are some comments and *puts* sentences that will be removed in latter versions.
-
+* An enhanced and more rich error mechanism between the local machine and remote controller
 
