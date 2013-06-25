@@ -12,10 +12,9 @@ module Vagrant
           
           argv = parse_options(opts)
           return if !argv  
-          raise Vagrant::Errors::CLIInvalidUsage, :help => opts.help.chomp if argv.length > 1 
-          
-          		
-					ServerAPI::ServerManager.run(File.dirname(@env.lock_path))
+          raise Vagrant::Errors::CLIInvalidUsage, :help => opts.help.chomp if argv.length > 1
+      		
+					ServerAPI::ServerManager.run(File.dirname(@env.lock_path),@env.data_dir,argv[0].to_i)
           		         		
           0
         end

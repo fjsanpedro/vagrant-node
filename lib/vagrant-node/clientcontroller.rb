@@ -1,6 +1,8 @@
 
 require 'vagrant'
 require 'vagrant-node/actions/snapshot'
+require 'vagrant-node/dbmanager'
+#require 'sambal'
 
 module Vagrant
 	module Node
@@ -20,7 +22,7 @@ module Vagrant
 					fboxes << {"name" => name,"provider" => provider}
 				end
 								
-				return fboxes
+				fboxes
 				
 			end
 			
@@ -40,22 +42,138 @@ module Vagrant
 			  	box.destroy!			  	
 			  end 
 								
-				return boxes
+				boxes
 				
 			end
 			
 			################################################################
 			########################  BOX ADD METHOD #######################
 			################################################################			
-			def self.box_add(box,url)
-			
+			def self.box_add(box,url,user="guest",pass="--no-pass")
+				
 				ensure_environment
 				
 				boxes = []			
 
 				#TODO
+				
+				# Get the provider if one was set
+				provider = nil
+#				provider = options[:provider].to_sym if options[:provider]
+
+				begin
+					
+					uri = "\\\\155.54.190.227\\boxtmp\\boxes\\debian_squeeze_32.box"
+#					
+#					if uri=~ /^\\\\(.*?)\\(.*?)\\(.*?)$/						
+#						puts "EL HOST ES #{$1}"
+#						puts "EL Share ES #{$2}"
+#						puts "EL PATH ES #{$3}"
+#						host = $1
+#						share = $2
+#						path = $3
+#						
+#						Getting and checking box file						
+#						boxname=File.basename(path.gsub('\\',File::SEPARATOR))
+#						
+#            raise 'Box file format not supported' if File.extname(boxname)!=".box"
+#
+#						samba = nil
+#						begin						
+#						samba = Sambal::Client.new(  :host     =>  host,
+#																				:share    =>  share,
+#																				:user     =>  user,
+#																				:password =>  pass)
+#					
+#						
+#						
+#						Get the tmp file name					
+#						temp_path = @env.tmp_path.join("box" + Time.now.to_i.to_s)
+#				
+#					
+#						response = nil
+#						
+#						smbclient //155.54.190.227/boxtmp --no-pass -W WORKGROUP -U guest -p 445
+#						smbclient //155.54.190.227/boxtmp -D boxes -c "get debian_squeeze_321.box" -N
+#						
+#						command="smbclient //#{host}/#{share} -D #{dirlocation} -c \"get #{boxname}\" -U #{user} --no-pass"
+#						
+#
+#						FIXME encontrar si existe algún tipo de notificación por
+#						interrupciónde la descarga
+#						FIXME a little hack beacuse in version 0.1.2 of sambal there is 
+#						a timeout that close the download after 10 seconds 
+#						def samba.ask(cmd)							
+#							@i.printf("#{cmd}\n")
+#							response = @o.expect(/^smb:.*\\>/)[0]				
+#						end
+#						
+#						response = samba.get(path, temp_path.to_s)
+#						FIXME DELETE
+#						pp response.inspect						
+#						
+#						raise response.message if !response.success?
+#						
+#						if response.success?								
+#								File download succesfully
+#								added_box = nil
+#								begin									
+#									provider=nil
+#									force = true
+#									added_box = @env.boxes.add(temp_path,box,nil,force)									
+#									boxes << {:name=>box,:provider=>added_box.provider.to_s}
+#								rescue Vagrant::Errors::BoxUpgradeRequired									
+#									Upgrade the box
+#									env.boxes.upgrade(box)
+#			
+#									Try adding it again
+#									retry
+#								rescue Exception => e									
+#									boxes = nil
+#								end
+#													
+#						end
+#						
+#						rescue Exception => e
+#							puts "EXCEPCION de descarga" if response
+#							puts "EXCEPCION de conexion" if !response
+#							puts e.message
+#							boxes=nil
+#						end
+#						
+#						
+#						Closing connection
+#						samba.close if samba
+#						
+#						
+#						Cleaning
+#						if temp_path && File.exist?(temp_path)
+#            	File.unlink(temp_path)
+#          	end
+# 
+#          	          		 
+#					else
+#						FIXME Ver qué poner en los parámetros de la llamada
+						provider=nil
+						force = true # Always overwrite box if exists
+						insecure = true #Don't validate SSL certs
+						#Calling original box add action
+						@env.action_runner.run(Vagrant::Action.action_box_add, {
+            :box_name     => box,
+            :box_provider => provider,
+            :box_url      => url,
+            :box_force    => force,
+            :box_download_insecure => insecure,
+          	})
+
+#					end
+					
+				rescue =>e
+						puts e.message
+				end
+
 			  								
-				return boxes
+				boxes
 				
 			end
 			
@@ -69,15 +187,10 @@ module Vagrant
 	
 				begin
 				
-					#FIXME DELETE
-		#								puts @env.active_machines
-		#								puts @env.machine_names
-					#					
-				
 					options = {}
 					options[:parallel] = true
 				
-					#Lanzando las máquinas
+					#Launching machines
 					@env.batch(options[:parallel]) do |batch|			
 						get_vms(vmname).each do |machine|				
 							machine_names << machine.name	
@@ -86,12 +199,10 @@ module Vagrant
 					end           
 					
 				
-					return machine_names
+					machine_names
 					
-				rescue => e
-					#FIXME DELETE
-					puts e.message	
-					return nil			 
+				rescue => e						
+#					return nil			 
 				end
 				
 			end
@@ -112,12 +223,10 @@ module Vagrant
 						machine.action(:destroy, :force_confirm_destroy => true)
 					end
 								
-					return machine_names
+					machine_names
 					
-				rescue => e
-					#FIXME DELETE
-					puts e.message
-					return nil
+				rescue => e					
+#					return nil
 				end
 				
 			end
@@ -137,12 +246,10 @@ module Vagrant
 						machine.action(:halt, :force_halt => force)
 					end
 							
-					return machine_names
+					machine_names
 				
-				rescue => e
-					#FIXME DELETE
-					puts e.message
-					return nil
+				rescue => e					
+#					return nil
 				end
 				
 			end
@@ -154,22 +261,22 @@ module Vagrant
 				ensure_environment				
 				
 				begin
-				
+					
 					status = Array.new
 										
 					get_vms(vmname).each do |machine|
 							
-						status << {"name" => machine.name.to_s.ljust(25),
+						status << {"name" => machine.name.to_s,
 									"status" => machine.state.short_description,
 									"provider" => machine.provider_name}
 					end		
 				
 				
-					return status
+					status
 							
 				rescue => e
 					puts e.message
-					return nil				
+#					return nil				
 				end
 				
 			end
@@ -185,18 +292,18 @@ module Vagrant
 				begin
 				
 					
-					#Suspendiendo las máquinas								
+					#Suspendiing machines								
 					get_vms(vmname).each do |machine|				
 						machine_names << machine.name	
 						machine.action(:suspend)
 					end           
 					
 				
-					return machine_names
+					machine_names
 					
 				rescue => e					
 					puts e.message	
-					return nil			 
+#					return nil			 
 				end
 				
 			end
@@ -209,27 +316,23 @@ module Vagrant
 			
 				machine_names = []
 	
-				puts "VMNAME ES #{vmname}"
+				
 				begin		
-									
 				
-					
-				
-					#Lanzando las máquinas
+					#Launching machines
 								
-					get_vms(vmname).each do |machine|
-						puts "MACHINE #{machine.name}"				
+					get_vms(vmname).each do |machine|						
 						machine_names << machine.name	
 						machine.action(:resume)					
 					end
 					           
 					
 				
-					return machine_names
+					machine_names
 					
 				rescue => e					
 					puts e.message	
-					return nil			 
+#					return nil			 
 				end
 				
 			end
@@ -243,9 +346,7 @@ module Vagrant
 				begin
 				
 					snapshots = {}
-						#machine.run_action(Fran)
-						#@env.action_runner.run(:Fran)
-          #@env.run_action(SnapshotAction)				
+										
 					get_vms(vmname).each do |machine|
 						
 						env = 
@@ -262,11 +363,11 @@ module Vagrant
 					end		
 				
 				
-					return snapshots
+					snapshots
 							
 				rescue => e
 					puts e.message
-					return nil				
+#					return nil				
 				end
 				
 			end
@@ -278,8 +379,6 @@ module Vagrant
 				ensure_environment				
 				
 				begin
-				
-					snapshot = {}
 										
 					get_vms(vmname).each do |machine|
 						env = 
@@ -296,12 +395,10 @@ module Vagrant
 						return res[:last_snapshot]
 						
 					end		
-				
-								
 							
 				rescue => e
 					puts e.message
-					return nil				
+#					return nil				
 				end
 				
 			end
@@ -313,10 +410,14 @@ module Vagrant
 				ensure_environment				
 				
 				begin
-				
-					snapshot = {}
 										
 					get_vms(vmname).each do |machine|
+						prev_state=machine.state.id
+						#First, ensure that the machine is in a proper state
+						#to restore the snapshot (save, poweroff)
+						machine.action(:suspend) if prev_state==:running
+						
+						#Now the machine is ready for restoration
 						env = 
 						{							
         			:machine        => machine,
@@ -327,15 +428,16 @@ module Vagrant
 						
 						res = @env.action_runner.run(SnapshotAction,env)
 						
+						#Now restore the vm to the previous state if running
+						machine.action(:up) if prev_state==:running
+						
 						return res[:restore_result]
 						
 					end		
-				
-								
 							
 				rescue => e
 					puts e.message
-					return nil				
+#					return nil				
 				end
 				
 			end
@@ -361,11 +463,11 @@ module Vagrant
 					           
 					
 				
-					return machine_names
+					machine_names
 					
 				rescue => e					
 					puts e.message	
-					return nil			 
+#					return nil			 
 				end
 				
 			end
@@ -377,26 +479,89 @@ module Vagrant
 			def self.vm_ssh_config(vmname)
 				ensure_environment
 				
+				
 				#Ensure vmname exists and it is not empty
-				if vmname.empty?
-					return nil
-				end
+				return nil if vmname.empty?
+					
 				
 				begin
-					#FIXME Change array due to we only want one result
 					info = Array.new
-					get_vms(vmname).each do |machine|						
-						info << machine.ssh_info
+					get_vms(vmname).each do |machine|												
+						info << machine.ssh_info						
 					end
 					
-					return info[0]
+					info[0]
+					
 				rescue => e
 					puts e.message
-					return nil
+#					return nil
 				end	
 			
 			end
 		
+			################################################################
+			############  VIRTUAL MACHINE BACKUP TAKE METHOD #############
+			################################################################
+			def self.vm_snapshot_take_file(vmname)
+				ensure_environment
+				
+				current_machine = nil
+				t = Time.now.strftime "%Y-%m-%d %H:%M:%S"
+				begin
+				  
+					machines=get_vms(vmname)
+					
+					return [404,"Virtual Machine not found"] if machines.empty?
+										
+					machines.each do |machine|						
+						
+						current_machine = machine.name.to_s						
+						
+						env = 
+						{							
+							:machine        => machine,
+							:machine_action => SnapshotAction::BACKUP,
+							:path						=> @env.data_dir
+						}
+						
+						@db.add_backup_log_entry(t,current_machine,BACKUP_IN_PROGRESS)
+		
+						res = @env.action_runner.run(SnapshotAction,env)
+						
+						if res[:bak_filename] == SnapshotAction::ERROR
+							@db.update_backup_log_entry(t,current_machine,BACKUP_ERROR)
+							return [500,"Internal Error"] if res[:bak_filename] == SnapshotAction::ERROR
+						else					
+							@db.update_backup_log_entry(t,current_machine,BACKUP_SUCCESS)
+							return [200,res[:bak_filename]]
+						end
+						
+					end	
+							
+				rescue => e					
+					@db.update_backup_log_entry(t,current_machine,BACKUP_ERROR)
+					return [500,"Internal Error"]				
+				end
+				
+			end
+			
+			
+			
+			################################################################
+			#################  BACKUP LOG METHOD ###############
+			################################################################
+			def self.backup_log(vmname)
+				ensure_environment				
+				
+				begin
+				
+					@db.get_backup_log_entries(vmname)
+					
+				rescue => e
+					puts e.message									
+				end
+				
+			end
 			
 			
 			################################################################
@@ -404,12 +569,23 @@ module Vagrant
 			################################################################
 			private
 			
-			def self.ensure_environment				
-				if (!@env)
-					opts = {}					
-					@env = Vagrant::Environment.new(opts)					
-				end							
-					
+			BACKUP_ERROR = "ERROR"
+			BACKUP_SUCCESS = "OK"
+			BACKUP_IN_PROGRESS = "IN PROGRESS"
+			
+			def self.ensure_environment
+				#Due to the fact that the enviroment data can change
+				#if we always use a stored value of env we won't be
+				#able to notice those changes 				
+#				if (!@env)
+#					opts = {}					
+#					@env = Vagrant::Environment.new(opts)					
+#				end				
+				
+				opts = {}					
+				@env = Vagrant::Environment.new(opts)
+				@db = DB::DBManager.new(@env.data_dir) if (!@db)
+				
 			end
 			
 			#FIXME REVISAR Y MEJORAR, LO HE HECHO DEPRISA PERO SE 
@@ -419,7 +595,7 @@ module Vagrant
 				provider=@env.default_provider
 							
 				if (vmname && !vmname.empty?)
-					#Si se especifica el nombre de una máquina concreta									
+						#If a machine was specified launch only that machine									
 						name=vmname.to_sym
 					if (@env.machine_names.index(name)!=nil)
 						
@@ -435,7 +611,7 @@ module Vagrant
 					end
 	
 				else
-					#Si no se ha especificado ninguna máquina entonces se lanzan todas
+					#If no machine was specified launch all
 					@env.machine_names.each do |machine_name|
 							@env.active_machines.each do |active_name, active_provider|								
 								if active_name==machine_name
@@ -448,43 +624,9 @@ module Vagrant
 					end			
 				end		
 				
-				return machines
+				machines
 				
 			end
-		
-		
-		
-		
-		#BACKUP
-		#FIXME en vez de con @env.active_machines, ya que no tendría
-		#en cuenta las vm no creadas, se utiliza @env.machine_names
-#		def self.get_vms(vmname)				
-#			machines = []
-#			if (vmname && !vmname.empty?)				
-#				Si se especifica el nombre de una máquina concreta						
-#				name=vmname.to_sym				
-#				@env.active_machines.each do |active_name, active_provider|					
-#					if name==active_name								
-#					machines << @env.machine(name,active_provider)
-#
-#					end								
-#				end
-#
-#			else
-#				Si no se ha especificado ninguna máquina entonces se lanzan todas
-#				@env.active_machines.each do |active_name, active_provider|
-#			
-#					if (@env.machine_names.index(active_name)!=nil)								
-#						machines << @env.machine(active_name,active_provider)
-#					end							
-#				end			
-#			end				
-#			
-#			puts "EN GET_VMS machines vale #{machines}"
-#			
-#			return machines
-#			
-#		end
 			
 		end
 	end

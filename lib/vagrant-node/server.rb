@@ -12,17 +12,16 @@ module Vagrant
 		module ServerAPI
 			class ServerManager
 				PIDFILENAME = "server.pid"
-				BIND_PORT = 3333	
+				DEFAULT_BIND_PORT = 3333	
 				BIND_ADDRESS = "0.0.0.0"
-				LOG_FILE = "/var/log/webrick.log"						
-				def self.run(pid_path)
+				LOG_FILE = "webrick.log"						
+				def self.run(pid_path,log_path,port=DEFAULT_BIND_PORT)
 					pid_file = File.join(pid_path,PIDFILENAME)
-								
-					
 								
 					pid = fork do
 					
-						log_file = File.open LOG_FILE, 'a+'
+						
+						log_file = File.open (log_path + LOG_FILE).to_s, 'a+'
 						
 						log = WEBrick::Log.new log_file
 						
@@ -30,9 +29,10 @@ module Vagrant
 							[log_file, WEBrick::AccessLog::COMBINED_LOG_FORMAT],
 						]
 						
+						port = DEFAULT_BIND_PORT if port < 1024
 						
 						options = {
-							:Port => BIND_PORT, 
+							:Port => port, 
 							:BindAddress => BIND_ADDRESS,
 							:Logger => log, 
 							:AccessLog => access_log
@@ -40,7 +40,7 @@ module Vagrant
 						
 						begin
 							server = WEBrick::HTTPServer.new(options)	
-						
+							
 							server.mount "/", Rack::Handler::WEBrick,ServerAPI::API.new
 							trap("INT") { server.stop }
 						

@@ -12,7 +12,18 @@ module Vagrant
 		      super
 
 		      @main_args, @sub_command, @sub_args = split_main_and_subcommand(argv)
-
+					@subcommands = Vagrant::Registry.new
+					
+					@subcommands.register(:start) do
+						require File.expand_path("../nodeserverstart", __FILE__)
+						NodeServerStart
+					end
+					
+					@subcommands.register(:stop) do
+						require File.expand_path("../nodeserverstop", __FILE__)
+						NodeServerStop
+					end
+					
 #				puts "MAIN ARGS #{@main_args}"
 #				puts "SUB COMMAND #{@sub_command}"
 #				puts "SUB ARGS #{@sub_args}"
@@ -24,24 +35,31 @@ module Vagrant
 					return help
 				end
 
-				case @sub_command
-					when START_COMMAND then
-						#@env.lock_path contiene la ruta al fichero de lock
+				command_class = @subcommands.get(@sub_command.to_sym) if @sub_command
+				return help if !command_class || !@sub_command
+				
+				@logger.debug("Invoking command class: #{command_class} #{@sub_args.inspect}")
+				
+				command_class.new(@sub_args, @env).execute
+				
+#				case @sub_command
+#					when START_COMMAND then
+#						@env.lock_path contiene la ruta al fichero de lock
 						#incluyendo el nombre de este, por lo tanto se pasa
-						#únicamente la ruta
-						ServerAPI::ServerManager.run(File.dirname(@env.lock_path))
-					when STOP_COMMAND then
-						ServerAPI::ServerManager.stop(File.dirname(@env.lock_path))
-					else
-						return help
-				end				
+						#únicamente la ruta						
+#						ServerAPI::ServerManager.run(File.dirname(@env.lock_path))
+#					when STOP_COMMAND then
+#						ServerAPI::ServerManager.stop(File.dirname(@env.lock_path))
+#					else
+#						return help
+#				end				
 				0
 			end
 			
 			def help
 				
 				opts = OptionParser.new do |opts|
-					opts.banner = "Usage: vagrant server <command>"
+					opts.banner = "Usage: vagrant nodeserver <command>"
 					opts.separator ""
 					opts.on("-h", "--help", "Print this help.")
 					opts.separator ""

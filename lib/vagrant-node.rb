@@ -4,14 +4,14 @@ module Vagrant
   module Node
     class Plugin < Vagrant.plugin("2")
     
-    	name "server"
+    	name "node"
     	description <<-DESC
     	ESTE PLUGIN ES EL QUE LANZA EL SERVIDOR
     	DESC
     	
 		
-			command ('server') do
-					require_relative "vagrant-node/servercommand"
+			command ('nodeserver') do
+					require_relative "vagrant-node/nodeservercommand"
 					Command
 			end
 		
