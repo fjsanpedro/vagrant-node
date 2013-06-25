@@ -5,6 +5,8 @@ This plugin allows you to set a computer with a virtual environment configured w
 
 With this plugin installed the Vagrant environment can perform requests, that you usually can execute locally, but commanded by a remote computer.
 
+This plugin has been developed in the context of the Catedra SAES of the University of Murcia(Spain).
+
 ##Installation
 Requires Vagrant 1.2 and libsqlite3-dev
 

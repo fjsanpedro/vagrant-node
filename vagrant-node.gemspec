@@ -9,7 +9,11 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Francisco Javier Lopez de San Pedro"]
   spec.email         = ["fjsanpedro@gmail.com"]
   spec.description   = "This Vagrant plugin allows you to configure a vm environment as a node in a client/server infraestructure. See also vagrant-nodemaster"
-  spec.summary       = "ESCRIBIR SUMMARY"
+  spec.summary       = "This plugin allows you to set a computer with a virtual environment configured with Vagrant to be controlled and managed remotely. The remote machine must have installed the controller plugin, Vagrant-NodeMaster.
+With this plugin installed the Vagrant environment can perform requests, that you usually can execute locally, but commanded by a remote computer.
+
+This plugin has been developed in the context of the Catedra SAES of the University of Murcia(Spain)."
+
   spec.homepage      = "http://www.catedrasaes.org"
   spec.license       = "GNU"
 
