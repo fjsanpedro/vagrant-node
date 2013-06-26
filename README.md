@@ -5,7 +5,7 @@ This plugin allows you to set a computer with a virtual environment configured w
 
 With this plugin installed the Vagrant environment can perform requests, that you usually can execute locally, but commanded by a remote computer. This service is provided through a REST API that this plugin exposes.
 
-This plugin has been developed in the context of the Catedra SAES of the University of Murcia(Spain).
+This plugin has been developed in the context of the [Catedra SAES](http://www.catedrasaes.org) of the University of Murcia(Spain).
 
 ##Installation
 Requires Vagrant 1.2 and libsqlite3-dev
@@ -34,6 +34,7 @@ $ vagrant nodeserver stop
 **The main lack of this version is that there is no type of authentication mechanism. Be carefull when you use it in a public infraestructure.**
 
 ## To-Do:
-* Beacuse the plugin is still under development, there are some comments and *puts* sentences that will be removed in latter versions.
+* Because the plugin is still under development, there are some comments and *puts* sentences that will be removed in latter versions.
 * An enhanced and more rich error mechanism between the local machine and remote controller
+* Lots of things...
 
