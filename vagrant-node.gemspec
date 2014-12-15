@@ -1,6 +1,9 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+
+
 require 'vagrant-node/version'
 
 Gem::Specification.new do |spec|
@@ -19,15 +22,26 @@ This plugin has been developed in the context of the Catedra SAES of the Univers
 
   spec.rubyforge_project = "vagrant-node"
 
-  spec.add_dependency "sinatra"
+  spec.add_dependency "sinatra"  
   spec.add_dependency "json"
   spec.add_dependency "rack"
-  spec.add_dependency "rubyzip"
-  spec.add_dependency "sqlite3"
+  #IMPORTANT Mysql DEV libraries must be installed on system
+  spec.add_dependency "mysql2"  
+  spec.add_dependency "usagewatch"  
+  spec.add_dependency "facter"  
+  spec.add_dependency "rubyzip", '< 1.0.0'
+  # spec.add_dependency "sqlite3"
+  spec.add_dependency "ruby2ruby", "~> 2.0.6"
+  spec.add_dependency "ruby_parser", "~> 3.2.2"
+  spec.add_dependency "sys-cpu"
+  
+   
+  
   #spec.add_dependency "sambal"
   #spec.add_dependency "rexml"
 
-  spec.files         = `git ls-files`.split($/)
+  #spec.files         = `git ls-files`.split($/)
+  spec.files         = `git ls-files`.split("\n")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
@@ -35,3 +49,5 @@ This plugin has been developed in the context of the Catedra SAES of the Univers
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
 end
+
+

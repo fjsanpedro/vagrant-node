@@ -1,4 +1,5 @@
 require "vagrant-node/version"
+require 'vagrant/plugin'
 
 module Vagrant
   module Node

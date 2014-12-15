@@ -67,7 +67,7 @@ module Vagrant
 				#se produce un error y deja a la máquina en estado 'gurumeditating'
 				def driver.take_snapshot(name,description=" ")						
           
-          			raise RestException.new(400,"Snapshot name can't be emtpy") if name.empty?						
+          raise RestException.new(400,"Snapshot name can't be emtpy") if name.empty?						
 					
 					#Snapshots with the same name are not allowed
 					begin

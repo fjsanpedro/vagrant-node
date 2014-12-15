@@ -24,6 +24,11 @@ module Vagrant
 						NodeServerStop
 					end
 					
+					@subcommands.register(:passwd) do
+            require File.expand_path("../nodeserverpasswd", __FILE__)
+            NodeServerPasswd
+          end
+					
 #				puts "MAIN ARGS #{@main_args}"
 #				puts "SUB COMMAND #{@sub_command}"
 #				puts "SUB ARGS #{@sub_args}"
@@ -66,6 +71,7 @@ module Vagrant
 					opts.separator "Available subcommands:"				
 					opts.separator "     start"
 					opts.separator "     stop"
+					opts.separator "     passwd"
 					opts.separator ""
 				end
 				
