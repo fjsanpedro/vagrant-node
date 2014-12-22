@@ -7,6 +7,7 @@ require 'vagrant-node/pwmanager'
 require 'vagrant-node/exceptions.rb'
 require 'vagrant-node/configmanager'
 require 'vagrant-node/obmanager'
+require 'vagrant-node/util/hwfunctions'
 require 'usagewatch'
 require "sys/cpu"
 require 'facter'
@@ -64,6 +65,7 @@ module Vagrant
 			################################################################
 			#######################  NODE INFO (CPU,MEMORY) ################
 			################################################################			
+
 			def self.nodeinfo
 				
 				
@@ -72,9 +74,20 @@ module Vagrant
 				
   				Facter.loadfacts
 
+  				mem_values = Util::HwFunctions.get_mem_values
   				
+
   				
   				result=Hash[Facter.to_hash.map{|(k,v)| [k.to_sym,v]}]
+
+  				
+  				#Overriding memory values of Facter  				
+  				result[:memorysize] = (mem_values[0] / 1024.0).round(2) #Converting to GB and rounding
+  				result[:memoryfree] = (mem_values[1] / 1024.0).round(2) #Converting to GB
+  				result[:memorysize_mb] = mem_values[0]
+  				result[:memoryfree_mb] = mem_values[1]
+  				 
+  				
 
   				result[:cpuaverage] = Sys::CPU.load_avg;
   				result[:diskusage] = usw.uw_diskused
