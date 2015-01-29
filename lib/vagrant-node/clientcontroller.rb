@@ -8,7 +8,7 @@ require 'vagrant-node/exceptions.rb'
 require 'vagrant-node/configmanager'
 require 'vagrant-node/obmanager'
 require 'vagrant-node/util/hwfunctions'
-require 'usagewatch'
+#require 'usagewatch'
 require "sys/cpu"
 require 'facter'
 
@@ -37,7 +37,8 @@ module Vagrant
 			  pid = fork do
 			    begin
 			     @db.create_queued_process(rpid)			     
-			     res = yield			     
+			     res = yield		
+			     pp "DESPUES DEL YIEDL #{res}"
 			     @db.set_queued_process_result(rpid,res.to_json)		     
 			     
 			    rescue Exception => e				      		    
@@ -69,12 +70,14 @@ module Vagrant
 			def self.nodeinfo
 				
 				
-  				usw = Usagewatch
+  				#usw = Usagewatch
 
 				
   				Facter.loadfacts
 
   				mem_values = Util::HwFunctions.get_mem_values
+
+  				disk_values = Util::HwFunctions.get_disk_values 				
   				
 
   				
@@ -90,7 +93,8 @@ module Vagrant
   				
 
   				result[:cpuaverage] = Sys::CPU.load_avg;
-  				result[:diskusage] = usw.uw_diskused
+  				#result[:diskusage] = usw.uw_diskused
+  				result[:diskusage] = disk_values
 
   				result	
 			
@@ -193,163 +197,144 @@ module Vagrant
 			################################################################
 			########################  BOX ADD METHOD #######################
 			################################################################			
+			# def self.box_add(box,url,user="guest",pass="--no-pass")
+
+				
+			# 	@env.boxes.all.each do |box_name,provider|					
+			# 		if box_name==box
+			# 			raise RestException.new(500,"There is a box with the same name")	
+			# 		end					
+			# 	end
+				
+			# 	#Adding the box to the list
+			# 	@db.add_box_download_info(box,url)
+
+
+			# 	#If the box is downloading or there isn't any box return
+			# 	return [] if (@db.is_box_downloading)				
+					
+				
+
+			# 	command_block = Proc.new {  
+   #                				#ensure_environment
+                  				
+   #                				boxes = []			
+                  
+                  				
+                  				
+   #                				# Get the provider if one was set
+   #                				provider = nil
+   #                #				provider = options[:provider].to_sym if options[:provider]
+                  
+   #                				begin
+                  					
+                 
+                  
+                           
+   #                          	copy_db = @db.clone
+                            
+                           
+
+   #                            boxes <<{:name=>box}
+   #                #						FIXME Ver qué poner en los parámetros de la llamada
+   #                						provider=nil
+   #                						force = true # Always overwrite box if exists
+   #                						insecure = true #Don't validate SSL certs
+   #                						#Calling original box add action
+
+                  						
+   #                						@env.action_runner.run(BoxAddAction, {
+			# 					                              :box_name     => box,
+			# 					                              :box_provider => provider,
+			# 					                              :box_url      => url,
+			# 					                              :box_force    => force,
+			# 					                              :box_download_insecure => insecure,
+			# 					                              :db => copy_db,
+			# 					                            	})
+
+                  						
+                  
+					     
+					     
+   #                				puts "HA TERMINADO LA ACCION"
+		                                      	
+			# 	              	boxes					     
+						     
+			# 		rescue =>e
+			# 				puts e.message
+			# 		end
+
+			# 	}
+
+   #      		method("execute_queued").call(&command_block);
+				
+			# end
+
 			def self.box_add(box,url,user="guest",pass="--no-pass")
 
-				@env.boxes.all.each do |box_name,provider|
-
+				
+				@env.boxes.all.each do |box_name,provider|					
 					if box_name==box
 						raise RestException.new(500,"There is a box with the same name")	
 					end					
 				end
-
+				
+					
+					
 				
 
-				command_block = Proc.new {
+				command_block = Proc.new {  
                   				#ensure_environment
                   				
                   				boxes = []			
-                  
-                  				#TODO
+                  				boxes <<{:name=>box}
+                  				#Adding the box to the list
+								@db.add_box_download_info(box,url)
+
+
+								#If the box is downloading or there isn't any box return
+								if (!@db.is_box_downloading)			
                   				
-                  				# Get the provider if one was set
-                  				provider = nil
-                  #				provider = options[:provider].to_sym if options[:provider]
-                  
-                  				begin
-                  					
-                  					#uri = "\\\\155.54.190.227\\boxtmp\\boxes\\debian_squeeze_32.box"
-                  #					
-                  #					if uri=~ /^\\\\(.*?)\\(.*?)\\(.*?)$/						
-                  #						puts "EL HOST ES #{$1}"
-                  #						puts "EL Share ES #{$2}"
-                  #						puts "EL PATH ES #{$3}"
-                  #						host = $1
-                  #						share = $2
-                  #						path = $3
-                  #						
-                  #						Getting and checking box file						
-                  #						boxname=File.basename(path.gsub('\\',File::SEPARATOR))
-                  #						
-                  #            raise 'Box file format not supported' if File.extname(boxname)!=".box"
-                  #
-                  #						samba = nil
-                  #						begin						
-                  #						samba = Sambal::Client.new(  :host     =>  host,
-                  #																				:share    =>  share,
-                  #																				:user     =>  user,
-                  #																				:password =>  pass)
-                  #					
-                  #						
-                  #						
-                  #						Get the tmp file name					
-                  #						temp_path = @env.tmp_path.join("box" + Time.now.to_i.to_s)
-                  #				
-                  #					
-                  #						response = nil
-                  #						
-                  #						smbclient //155.54.190.227/boxtmp --no-pass -W WORKGROUP -U guest -p 445
-                  #						smbclient //155.54.190.227/boxtmp -D boxes -c "get debian_squeeze_321.box" -N
-                  #						
-                  #						command="smbclient //#{host}/#{share} -D #{dirlocation} -c \"get #{boxname}\" -U #{user} --no-pass"
-                  #						
-                  #
-                  #						FIXME encontrar si existe algún tipo de notificación por
-                  #						interrupciónde la descarga
-                  #						FIXME a little hack beacuse in version 0.1.2 of sambal there is 
-                  #						a timeout that close the download after 10 seconds 
-                  #						def samba.ask(cmd)							
-                  #							@i.printf("#{cmd}\n")
-                  #							response = @o.expect(/^smb:.*\\>/)[0]				
-                  #						end
-                  #						
-                  #						response = samba.get(path, temp_path.to_s)
-                  #						FIXME DELETE
-                  #						pp response.inspect						
-                  #						
-                  #						raise response.message if !response.success?
-                  #						
-                  #						if response.success?								
-                  #								File download succesfully
-                  #								added_box = nil
-                  #								begin									
-                  #									provider=nil
-                  #									force = true
-                  #									added_box = @env.boxes.add(temp_path,box,nil,force)									
-                  #									boxes << {:name=>box,:provider=>added_box.provider.to_s}
-                  #								rescue Vagrant::Errors::BoxUpgradeRequired									
-                  #									Upgrade the box
-                  #									env.boxes.upgrade(box)
-                  #			
-                  #									Try adding it again
-                  #									retry
-                  #								rescue Exception => e									
-                  #									boxes = nil
-                  #								end
-                  #													
-                  #						end
-                  #						
-                  #						rescue Exception => e
-                  #							puts "EXCEPCION de descarga" if response
-                  #							puts "EXCEPCION de conexion" if !response
-                  #							puts e.message
-                  #							boxes=nil
-                  #						end
-                  #						
-                  #						
-                  #						Closing connection
-                  #						samba.close if samba
-                  #						
-                  #						
-                  #						Cleaning
-                  #						if temp_path && File.exist?(temp_path)
-                  #            	File.unlink(temp_path)
-                  #          	end
-                  # 
-                  #          	          		 
-                  #					else
-                  
-                           
-                            copy_db = @db.clone
-                            
-                           
+	                  				# Get the provider if one was set
+	                  				provider = nil                  
+	                  
+	                  				begin
+	                  					
+	                 
+	                  
+	                           
+		                            	copy_db = @db.clone
+		                            
+		                           
 
-                              boxes <<{:name=>box}
-                  #						FIXME Ver qué poner en los parámetros de la llamada
-                  						provider=nil
-                  						force = true # Always overwrite box if exists
-                  						insecure = true #Don't validate SSL certs
-                  						#Calling original box add action
+		                              	#boxes <<{:name=>box}
 
-                  						
-                  						@env.action_runner.run(BoxAddAction, {
-								                              :box_name     => box,
-								                              :box_provider => provider,
-								                              :box_url      => url,
+		          
+		          						provider=nil
+		          						force = true # Always overwrite box if exists
+		          						insecure = true #Don't validate SSL certs
+		          						#Calling original box add action
+
+		          						
+		          						@env.action_runner.run(BoxAddAction, {	
+		          											  :box_provider => provider,						                              
 								                              :box_force    => force,
 								                              :box_download_insecure => insecure,
 								                              :db => copy_db,
 								                            	})
 
-                  						# @env.action_runner.run(Vagrant::Action.action_box_add, {
-                        #       :box_name     => box,
-                        #       :box_provider => provider,
-                        #       :box_url      => url,
-                        #       :box_force    => force,
-                        #       :box_download_insecure => insecure,
-                        #     	})
-                  
-                  #					end
-                  
-                  
-					     
-					     
-
-                                      
-	              	boxes					     
 						     
-					rescue =>e
-							puts e.message
-					end
+	                  				
+			                                      	
+					              						     
+						     
+									rescue =>e
+											puts e.message
+									end
+
+									boxes
+
+								end
 
 				}
 
@@ -364,7 +349,7 @@ module Vagrant
 			################################################################
 			def self.vm_up(vmname)	
 			
-				
+				puts "CLIENTCONTROLLER::VN_UP"	
 
 			  	command_block = Proc.new {					
 					
@@ -395,7 +380,7 @@ module Vagrant
 						end           
 				
 						raise RestException.new(404,"The machine #{vmname} does not exist") if (machine_names.empty?)						
-
+						pp "VM_UP #{machine_names}"
 						machine_names
 
 					rescue Exception => e  	
@@ -509,7 +494,7 @@ module Vagrant
 		#################  VIRTUAL MACHINE HALT METHOD #################
 		################################################################
 		def self.vm_halt(vmname,force)
-			
+			puts "CLIENTCONTROLLER::VN_HALT"
 			force=(force=="true")?true:false;
 
 		  	command_block = Proc.new {
@@ -524,7 +509,7 @@ module Vagrant
 					end
 
 					raise RestException.new(404,"The machine #{vmname} does not exist") if (machine_names.empty?)						
-
+					pp "VM_HALT #{machine_names}"
 					machine_names
 
 				rescue Exception => e  						

@@ -42,6 +42,8 @@ module Vagrant
 							:AccessLog => access_log
 						}
 						
+
+
 						
 						#begin
 							server = WEBrick::HTTPServer.new(options)	
@@ -51,6 +53,8 @@ module Vagrant
 							trap("INT") { server.shutdown }
 
 							trap("USR1") { 
+								
+								puts "SERVER.RB RESTARTING SERVER"
 								
 								#Stopping server
 								server.shutdown

@@ -10,8 +10,10 @@ module DB
 	class DBManager
 
 		DOWNLOAD_ERROR=-1
-		DOWNLOAD_PROCESS=0
-		DOWNLOAD_SUCCESS=0
+		DOWNLOAD_STOP=0		
+		DOWNLOAD_START=1
+		DOWNLOAD_SUCCESS=2
+		DOWNLOAD_UNCOMPRESS = 3
 
 		def initialize(data_dir)
 			@db=check_database(data_dir)
@@ -141,12 +143,55 @@ module DB
           sql="DELETE FROM #{OPERATION_QUEUE_TABLE_NAME}"
           @db.query(sql)          
         end
+
+        def are_boxes_queued
+           result=@db.query("SELECT * FROM #{DOWNLOAD_BOX_TABLE} WHERE #{DOWNLOAD_STATUS_COLUMN} = #{DOWNLOAD_STOP}")
+
+           result.size!=0
+
+        end
         
-        def add_box_download_info(box_name,box_url)           	
-        	sql="INSERT INTO #{DOWNLOAD_BOX_TABLE}(#{DOWNLOAD_BOX_COLUMN},#{DOWNLOAD_URL_COLUMN},#{DOWNLOAD_PROGRESS_COLUMN},#{DOWNLOAD_REMAINING_COLUMN},#{DOWNLOAD_STATUS_COLUMN}) VALUES ('#{box_name}','#{box_url}','0%','--:--:--',#{DOWNLOAD_PROCESS})"
+        def start_box_download
+
+        	result=@db.query("SELECT * FROM #{DOWNLOAD_BOX_TABLE} WHERE #{DOWNLOAD_STATUS_COLUMN} = #{DOWNLOAD_STOP}")                   	
+
+
+        	id_next=result.first["id"]
+
+
+        	sql="UPDATE #{DOWNLOAD_BOX_TABLE} SET  
+        			#{DOWNLOAD_PROGRESS_COLUMN}='0%',
+        			#{DOWNLOAD_REMAINING_COLUMN}='--:--:--',
+        			#{DOWNLOAD_STATUS_COLUMN}=#{DOWNLOAD_START} 
+        			WHERE #{DOWNLOAD_ID_COLUMN}=#{id_next}"
+
             @db.query(sql)          
+
+            id_next	
+        end
+
+        def add_box_download_info(box_name,box_url)           	
+        	sql="INSERT INTO #{DOWNLOAD_BOX_TABLE}(#{DOWNLOAD_BOX_COLUMN},#{DOWNLOAD_URL_COLUMN},#{DOWNLOAD_PROGRESS_COLUMN},#{DOWNLOAD_REMAINING_COLUMN},#{DOWNLOAD_STATUS_COLUMN}) VALUES ('#{box_name}','#{box_url}','WAITING','WAITING',#{DOWNLOAD_STOP})"
+            @db.query(sql)                      
+            
             last_id=@db.query("SELECT LAST_INSERT_ID() as last")            
             last_id.first["last"]
+        end
+
+        def is_box_downloading
+        	result=@db.query("SELECT * FROM #{DOWNLOAD_BOX_TABLE} WHERE #{DOWNLOAD_STATUS_COLUMN} = #{DOWNLOAD_START}")
+			return false if result.size==0	
+			return true
+        end
+
+        def get_box_to_download
+        	result=@db.query("SELECT * FROM #{DOWNLOAD_BOX_TABLE} WHERE #{DOWNLOAD_STATUS_COLUMN} = #{DOWNLOAD_STOP}")                   	
+        	
+        	((result.size==0)?nil:result.first)
+        		
+
+        	#id_next=result.first["id"]
+        	#id_next
         end
 
         def get_box_download        	        	
@@ -165,7 +210,7 @@ module DB
         end
 
         def set_box_download_error(id)
-        	sql="UPDATE #{DOWNLOAD_BOX_TABLE} SET #{DOWNLOAD_STATUS_COLUMN} = #{DOWNLOAD_ERROR}, #{DOWNLOAD_PROGRESS_COLUMN} = 'ERROR' WHERE #{DOWNLOAD_ID_COLUMN}=#{id}"
+        	sql="UPDATE #{DOWNLOAD_BOX_TABLE} SET #{DOWNLOAD_STATUS_COLUMN} = #{DOWNLOAD_ERROR}, #{DOWNLOAD_PROGRESS_COLUMN} = 'ERROR',#{DOWNLOAD_REMAINING_COLUMN}='ERROR' WHERE #{DOWNLOAD_ID_COLUMN}=#{id}"
         	@db.query(sql)
         end
 
@@ -175,13 +220,15 @@ module DB
         	@db.query(sql)
         end
 
-        def add_box_uncompression(box_name,box_url)
-        	sql="INSERT INTO #{DOWNLOAD_BOX_TABLE}(#{DOWNLOAD_BOX_COLUMN},#{DOWNLOAD_URL_COLUMN},#{DOWNLOAD_PROGRESS_COLUMN},#{DOWNLOAD_REMAINING_COLUMN},#{DOWNLOAD_STATUS_COLUMN}) VALUES ('#{box_name}','#{box_url}','Uncompressing','Uncompressing',#{DOWNLOAD_PROCESS})"
+        def add_box_uncompression(id)
+
+        	sql="UPDATE #{DOWNLOAD_BOX_TABLE}  SET #{DOWNLOAD_PROGRESS_COLUMN}='Uncompressing',#{DOWNLOAD_REMAINING_COLUMN}='Uncompressing',#{DOWNLOAD_STATUS_COLUMN}=#{DOWNLOAD_UNCOMPRESS} WHERE #{DOWNLOAD_ID_COLUMN}=#{id}"
+        	#sql="INSERT INTO #{DOWNLOAD_BOX_TABLE}(#{DOWNLOAD_BOX_COLUMN},#{DOWNLOAD_URL_COLUMN},#{DOWNLOAD_PROGRESS_COLUMN},#{DOWNLOAD_REMAINING_COLUMN},#{DOWNLOAD_STATUS_COLUMN}) VALUES ('#{box_name}','#{box_url}','Uncompressing','Uncompressing',#{DOWNLOAD_STOP})"
             #@db.execute(sql,box_name,box_url,DOWNLOAD_PROCESS)          
             @db.query(sql)          
 
-            last_id=@db.query("SELECT LAST_INSERT_ID() as last")            
-            last_id.first["last"]
+            # last_id=@db.query("SELECT LAST_INSERT_ID() as last")            
+            # last_id.first["last"]
         end
 
         def set_box_uncompression_error(id)
@@ -191,7 +238,7 @@ module DB
         end
 
         def clear_box_uncompression(id)
-        	sql="DELETE FROM #{DOWNLOAD_BOX_TABLE} WHERE #{DOWNLOAD_STATUS_COLUMN}!=#{id}"        	
+        	sql="DELETE FROM #{DOWNLOAD_BOX_TABLE} WHERE #{DOWNLOAD_ID_COLUMN}=#{id}"        	
         	@db.query(sql)
         end
 
@@ -262,7 +309,7 @@ module DB
 		DOWNLOAD_ID_COLUMN = 'id'
 		DOWNLOAD_BOX_COLUMN = 'box_name'
 		DOWNLOAD_URL_COLUMN = 'box_url'
-		DOWNLOAD_STATUS_COLUMN = 'download_status'
+		DOWNLOAD_STATUS_COLUMN = 'download_status'		
 		DOWNLOAD_PROGRESS_COLUMN = 'download_progress'
 		DOWNLOAD_REMAINING_COLUMN = 'download_remaining'
 		CONFIG_DBUSER = 'dbuser'
@@ -317,7 +364,7 @@ module DB
 			  `#{DOWNLOAD_URL_COLUMN}` text NOT NULL,
 			  `#{DOWNLOAD_PROGRESS_COLUMN}` VARCHAR(10),
 			  `#{DOWNLOAD_STATUS_COLUMN}` int(11) NOT NULL,
-			  `#{DOWNLOAD_REMAINING_COLUMN}` VARCHAR(10),
+			  `#{DOWNLOAD_REMAINING_COLUMN}` VARCHAR(10),			  		  
 			  PRIMARY KEY (`#{DOWNLOAD_ID_COLUMN}`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;")
 

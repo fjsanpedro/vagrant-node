@@ -64,7 +64,9 @@ module Vagrant
 
           # Setup the proc that'll receive the real-time data from
           # the downloader.
-          last_id=@db.add_box_download_info(@box_name,@source)
+          last_id = @db.start_box_download          
+          
+          #last_id=@db.add_box_download_info(@box_name,@source)
           
           comienzo = Time.now();
           
@@ -139,12 +141,18 @@ module Vagrant
           end
           
 
-          if ((!interrupted) && (result.exit_code==0))
-              # @db.update_box_download_info(last_id,"100%","--:--:--")                            
-              @db.delete_box_download(last_id)
-          else                                              
+          # if ((!interrupted) && (result.exit_code==0))
+          #     # @db.update_box_download_info(last_id,"100%","--:--:--")                            
+          #     @db.delete_box_download(last_id)
+          # else                                              
+          #     @db.set_box_download_error(last_id)
+          # end
+
+          if (interrupted || (result.exit_code!=0))                  
               @db.set_box_download_error(last_id)
           end
+
+          
           
           
           # If the download was interrupted, then raise a specific error

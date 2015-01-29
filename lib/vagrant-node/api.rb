@@ -131,14 +131,14 @@ module ServerAPI
 	
 	#accept :vmname as paramter. This parameter
 	#could be empty
-	post RouteManager.vm_up_route do		  
-	  execute_async(:vm_up,params[:vmname])
+	post RouteManager.vm_up_route do	  		  
+		execute_async(:vm_up,params[:vmname])	  	
 	end
 		
 	#accept :vmname and :force as paramters
 	post RouteManager.vm_halt_route do
 		#handle_response_result(ClientController.vm_halt(params[:vmname],params[:force])
-		execute_async(:vm_halt,params[:vmname],params[:force])        
+		execute_async(:vm_halt,params[:vmname],params[:force])        		
 	end
 		
 	#accept :vmname as paramter. This parameter
@@ -271,13 +271,13 @@ private
 	#FIXME Factorizar estos dos métodos
 	def execute_async(method,*params)
 		begin 
-			
+		
 		if params.empty?
 		  result=ClientController.send method.to_sym
 		else              
 		  result=ClientController.send method.to_sym,*params
 		end
-
+		
 
 		#pp result
 		status 202
@@ -301,17 +301,15 @@ private
 	  #def execute(method,params = {} ,to_json = true)
 	def execute(method,to_json = true,*params)
 	    begin	
-
+	    
 	      #raise Vagrant::Errors::VirtualBoxNotDetected
 
 	      if params.empty?
-	        result=ClientController.send method.to_sym
+	        result=ClientController.send method.to_sym	        
 	      else			        
-	        result=ClientController.send method.to_sym,*params
+	        result=ClientController.send method.to_sym,*params	        
 	      end			      	
-            #puts "A JSON " if to_json
-            #puts "resultado #{result}"
-            return result.to_json if to_json
+            return result.to_json.gsub("\n"," ") if to_json
             result
     
 	    rescue => e			     	      
@@ -319,8 +317,9 @@ private
 	      
 	      
 	      if (e.class==Vagrant::Errors::VirtualBoxNotDetected)
-	      	#puts "******* SE HA GENERADO LA EXCEPCION VIRTUALBOXNOTDETECTED ******"
+	      	puts "******* SE HA GENERADO LA EXCEPCION VIRTUALBOXNOTDETECTED ******"
 	      	
+	      	@env = ObManager.instance.reload_env
 
 	      	restart_server
 	      	halt 503,"Node had a problem. Restarting. Try again in a few seconds"
