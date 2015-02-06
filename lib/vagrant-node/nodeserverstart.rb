@@ -15,7 +15,9 @@ module Vagrant
               # options[:password] = b
         # end
       end        
-          
+
+      raise Errors::NoEnvironmentError if !@env.root_path
+
       argv = parse_options(opts)
       return if !argv  
       raise Vagrant::Errors::CLIInvalidUsage, :help => opts.help.chomp if argv.length > 1

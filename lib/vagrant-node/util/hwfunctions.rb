@@ -40,7 +40,7 @@ module Util
 				if (((major_number==MAJOR_SATA) || (major_number==MAJOR_IDE)) && minor_number!=0)
 					#In this point you have all single disk partitions
 					#But we only want mounted ones					
-					resout= `df -h`
+					resout= `df -h`					
 					resout.split("\n").each do |line1|
 						if (line1.split[0]=="/dev/"+line.split[NAME_FIELD])
 							entry =[]

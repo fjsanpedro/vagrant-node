@@ -9,29 +9,26 @@ module Vagrant
 			START_COMMAND = "start"
 			STOP_COMMAND = "stop"
 			def initialize(argv, env)
-		      super
+				super
 
-		      @main_args, @sub_command, @sub_args = split_main_and_subcommand(argv)
-					@subcommands = Vagrant::Registry.new
+				@main_args, @sub_command, @sub_args = split_main_and_subcommand(argv)
+				@subcommands = Vagrant::Registry.new
+
+				@subcommands.register(:start) do
+					require File.expand_path("../nodeserverstart", __FILE__)
+					NodeServerStart
+				end
+
+				@subcommands.register(:stop) do
+					require File.expand_path("../nodeserverstop", __FILE__)
+					NodeServerStop
+				end
+
+				@subcommands.register(:passwd) do
+	            	require File.expand_path("../nodeserverpasswd", __FILE__)
+	            	NodeServerPasswd
+	          	end
 					
-					@subcommands.register(:start) do
-						require File.expand_path("../nodeserverstart", __FILE__)
-						NodeServerStart
-					end
-					
-					@subcommands.register(:stop) do
-						require File.expand_path("../nodeserverstop", __FILE__)
-						NodeServerStop
-					end
-					
-					@subcommands.register(:passwd) do
-            require File.expand_path("../nodeserverpasswd", __FILE__)
-            NodeServerPasswd
-          end
-					
-#				puts "MAIN ARGS #{@main_args}"
-#				puts "SUB COMMAND #{@sub_command}"
-#				puts "SUB ARGS #{@sub_args}"
 			end
 			
 			def execute
@@ -47,17 +44,7 @@ module Vagrant
 				
 				command_class.new(@sub_args, @env).execute
 				
-#				case @sub_command
-#					when START_COMMAND then
-#						@env.lock_path contiene la ruta al fichero de lock
-						#incluyendo el nombre de este, por lo tanto se pasa
-						#únicamente la ruta						
-#						ServerAPI::ServerManager.run(File.dirname(@env.lock_path))
-#					when STOP_COMMAND then
-#						ServerAPI::ServerManager.stop(File.dirname(@env.lock_path))
-#					else
-#						return help
-#				end				
+	
 				0
 			end
 			

@@ -77,24 +77,7 @@ module Vagrant
                 print "Can't connect to mysql with current configuration, please review provided credentials. Please execute again this command to reconfigure"
                 DB::DBManager.delete_config_file(@env.data_dir)                
               end
-
-              # #if (exception.class==Mysql2::Error)
-              # if (i<1)                                
-              #   puts "Configuring database connection "
-              #   puts "Do you let us create "
-              #   puts "Insert privilege database user:"
-              #   user=STDIN.noecho(&:gets).chomp
-              #   print "\n"
-              #   print "Insert privilege database password:"
-              #   password=STDIN.noecho(&:gets).chomp
-              #   print "\n"
-              #   print "Insert database name:"
-              #   database=STDIN.noecho(&:gets).chomp
-              #   print "\n"
-              #   DB::DBManager.create_config_file(@env.data_dir,'localhost',database,user,password)
-              #   i=i+1
-              #   retry
-              # end
+              
             end
             
             if (!db.nil?)
@@ -136,9 +119,7 @@ module Vagrant
   
   
             
-          # else
-            # puts "INTRODUCIDA EN TERMINAL"
-          # end           
+                 
           
           
           		         		

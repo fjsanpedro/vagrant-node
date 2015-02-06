@@ -93,48 +93,79 @@ module DB
           @db.query(sql)
         end
         
+		def quote_string(s)
+	  		s.gsub(/\\/, '\&\&').gsub(/'/, "''") # ' (for ruby-mode)
+		end
+
+
+		UNESCAPES = {
+		    'a' => "\x07", 'b' => "\x08", 't' => "\x09",
+		    'n' => "\x0a", 'v' => "\x0b", 'f' => "\x0c",
+		    'r' => "\x0d", 'e' => "\x1b", "\\\\" => "\x5c",
+		    "\"" => "\x22", "'" => "\x27"
+		}
+
+		def unescape(str)
+		  # Escape all the things
+		  str.gsub(/\\(?:([#{UNESCAPES.keys.join}])|u([\da-fA-F]{4}))|\\0?x([\da-fA-F]{2})/) {
+		    if $1
+		      if $1 == '\\' then '\\' else UNESCAPES[$1] end
+		    elsif $2 # escape \u0000 unicode
+		      ["#$2".hex].pack('U*')
+		    elsif $3 # escape \0xff or \xff
+		      [$3].pack('H2')
+		    end
+		  }
+		end
+
+
         def set_queued_process_error(id,exception)          
           
           errlog = []		
+          
 
           errcode=PROCESS_ERROR
           
-          # decoded=exception.message.to_s.tr("\n"," ")
-          # puts exception.message.to_s
-          # pp exception.message.to_s
-          # pp decoded
-
-          
-
+          #Code to avoid some annoying things related to special chars
+    	  error_msg=exception.message
+    	  error_msg=quote_string(error_msg).to_json    	  
+    	  error_msg=error_msg[1,error_msg.size-2]
+    	  
+    	  
+    	     	  
           if (exception.class==VMActionException)
-          	errlog << {"vmname" => exception.vmname,"provider"=>exception.provider,"status" => exception.message.to_s.tr("\'","\"")}	
+          	#errlog << {"vmname" => exception.vmname,"provider"=>exception.provider,"status" => @db.escape(error_msg)}	
+          	errlog << {"vmname" => exception.vmname,"provider"=>exception.provider,"status" => error_msg}	
           elsif (exception.class==RestException)
           	errcode=exception.code
-          	errlog << {"status" => exception.message.to_s.tr("\'","\"")}	          	
+          	errlog << {"status" => error_msg}	          	
           else
-          	errlog << {"status" => exception.message.to_s.tr("\'","\"")}	          	
+          	# errlog << {"status" => exception.message.to_s.tr("\'","\"")}	          	
+          	errlog << {"status" => error_msg}	          	
           end
+
+          #sql="UPDATE #{OPERATION_QUEUE_TABLE_NAME} SET #{OPERATION_STATUS_COLUMN} = #{errcode},#{OPERATION_RESULT_COLUMN} = '#{errlog.to_json}' WHERE #{OPERATION_ID_COLUMN}= #{id}"
           
           
+          sql="UPDATE #{OPERATION_QUEUE_TABLE_NAME} SET #{OPERATION_STATUS_COLUMN} = #{errcode},#{OPERATION_RESULT_COLUMN} = '#{errlog.to_json}' WHERE #{OPERATION_ID_COLUMN}= #{id}"
           
-          sql="UPDATE #{OPERATION_QUEUE_TABLE_NAME} SET #{OPERATION_STATUS_COLUMN} = #{errcode},#{OPERATION_RESULT_COLUMN} = '#{errlog.to_json}'  WHERE #{OPERATION_ID_COLUMN}= #{id}"
+
           
-          
-          #errlog << {"vmname" => "TODO","status" => exception.message.to_s}
-          
+
           #@db.execute(sql,errcode,errlog.to_json,id)
           @db.query(sql)
         end
         
         def get_queued_process_result(id)          
           check_operation_timeout
-          sql="SELECT #{OPERATION_STATUS_COLUMN},#{OPERATION_RESULT_COLUMN} FROM #{OPERATION_QUEUE_TABLE_NAME} WHERE #{OPERATION_ID_COLUMN}= #{id};"          
+          #sql="SELECT #{OPERATION_STATUS_COLUMN},QUOTE(#{OPERATION_RESULT_COLUMN}) as operation_result FROM #{OPERATION_QUEUE_TABLE_NAME} WHERE #{OPERATION_ID_COLUMN}= #{id};"                    
+          sql="SELECT #{OPERATION_STATUS_COLUMN},#{OPERATION_RESULT_COLUMN} FROM #{OPERATION_QUEUE_TABLE_NAME} WHERE #{OPERATION_ID_COLUMN}= #{id};"                    
           @db.query(sql)                    
         end
         
         def get_queued_last
           check_operation_timeout
-          sql="SELECT #{OPERATION_STATUS_COLUMN},#{OPERATION_RESULT_COLUMN} FROM #{OPERATION_QUEUE_TABLE_NAME};"
+          sql="SELECT #{OPERATION_STATUS_COLUMN},#{OPERATION_RESULT_COLUMN} FROM #{OPERATION_QUEUE_TABLE_NAME};"          
           @db.query(sql)
         end
         

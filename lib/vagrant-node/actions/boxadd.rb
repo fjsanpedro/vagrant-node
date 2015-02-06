@@ -54,11 +54,6 @@ module Vagrant
             #env[:ui].info(I18n.t("vagrant.actions.box.download.interrupted"))
             return          
           rescue Errors::DownloaderError => msg
-            #puts msg.message.split(/\r\n/).inspect.length
-
-            #puts "CONTROLAR ESTE MENSAJE DE ERROR"
-            
-
             return
           end
 
@@ -67,7 +62,7 @@ module Vagrant
           error=false
 
           begin
-
+            
             #last_id=env[:db].add_box_uncompression(env[:box_name],url)        
             ObManager.instance.dbmanager.add_box_uncompression(next_id)
               

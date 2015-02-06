@@ -32,8 +32,7 @@ module Vagrant
     class ExceptionMutator < RestException
       include Vagrant::Errors
       def initialize(exception)
-        if (exception.is_a?(Vagrant::Errors::VagrantError))         
-          puts exception.class
+        if (exception.is_a?(Vagrant::Errors::VagrantError))                   
           case exception               
           when BaseVMNotFound,
                BoxNotFound,

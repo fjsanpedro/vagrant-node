@@ -281,30 +281,5 @@ module Vagrant
   end
 end
 
-#				def driver.list
-#						puts "LISTING SNAPSHOT"
-#						begin
-#						snapshots = []
-#						puts "UUID #{self.uuid}"
-#						execute("snapshot",self.uuid,"list").split("\n").each do |line|
-#							snapshot = {}							
-#
-#							if line =~ /Name:\s(.*?)\s\(UUID:\s(.*?)\)$/								
-#								snapshot[:name] = $1
-#								snapshot[:id] = $2
-#								snapshot[:current_state] = false						 	
-#						 	elsif line =~ /Name:\s(.*?)\s\(UUID:\s(.*?)\)\s\*$/						
-#								snapshot[:name] = $1
-#								snapshot[:id] = $2
-#								snapshot[:current_state] = true
-#						 	end					
-#						 	snapshots.push(snapshot)		
-#						end
-#						rescue Exception => e
-#							puts e.message
-#						end
-#						
-#						puts snapshots
-#						return snapshots
-#				end
+
 				

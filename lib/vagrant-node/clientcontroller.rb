@@ -37,8 +37,7 @@ module Vagrant
 			  pid = fork do
 			    begin
 			     @db.create_queued_process(rpid)			     
-			     res = yield		
-			     pp "DESPUES DEL YIEDL #{res}"
+			     res = yield					     
 			     @db.set_queued_process_result(rpid,res.to_json)		     
 			     
 			    rescue Exception => e				      		    
@@ -72,31 +71,38 @@ module Vagrant
 				
   				#usw = Usagewatch
 
-				
-  				Facter.loadfacts
+				begin
+					Facter.loadfacts
 
-  				mem_values = Util::HwFunctions.get_mem_values
+	  				mem_values = Util::HwFunctions.get_mem_values
 
-  				disk_values = Util::HwFunctions.get_disk_values 				
+	  				disk_values = Util::HwFunctions.get_disk_values 				
+	  				
+
+	  				
+	  				result=Hash[Facter.to_hash.map{|(k,v)| [k.to_sym,v]}]
+
+	  				
+	  				#Overriding memory values of Facter  				
+	  				result[:memorysize] = (mem_values[0] / 1024.0).round(2) #Converting to GB and rounding
+	  				result[:memoryfree] = (mem_values[1] / 1024.0).round(2) #Converting to GB
+	  				result[:memorysize_mb] = mem_values[0]
+	  				result[:memoryfree_mb] = mem_values[1]
+	  				 
+	  				
+
+	  				result[:cpuaverage] = Sys::CPU.load_avg;
+	  				#result[:diskusage] = usw.uw_diskused
+	  				result[:diskusage] = disk_values
+
+	  				result[:vagrant_version] = Vagrant::VERSION
+
+	  				result	
+
+				rescue Exception => e
+					raise RestException.new(500,"Error gathering node hardware information")
+				end
   				
-
-  				
-  				result=Hash[Facter.to_hash.map{|(k,v)| [k.to_sym,v]}]
-
-  				
-  				#Overriding memory values of Facter  				
-  				result[:memorysize] = (mem_values[0] / 1024.0).round(2) #Converting to GB and rounding
-  				result[:memoryfree] = (mem_values[1] / 1024.0).round(2) #Converting to GB
-  				result[:memorysize_mb] = mem_values[0]
-  				result[:memoryfree_mb] = mem_values[1]
-  				 
-  				
-
-  				result[:cpuaverage] = Sys::CPU.load_avg;
-  				#result[:diskusage] = usw.uw_diskused
-  				result[:diskusage] = disk_values
-
-  				result	
 			
 				
 			end			
@@ -151,10 +157,15 @@ module Vagrant
   				boxes = @env.boxes.all.sort				
   				
   				fboxes = Array.new				
-  				boxes.each do |name, provider|					
-  					fboxes << {"name" => name,"provider" => provider}
+
+  				#From version 1.6.5 (I'think) the box array is different from previous ones
+  				boxes.each do |entry|					  					
+  					if entry.size==3
+  						fboxes << {"name" => entry[0],"provider" => entry[2]}
+  					else
+  						fboxes << {"name" => entry[0],"provider" => entry[1]}
+  					end
   				end
-  				
   				
   				fboxes		
 			
@@ -349,7 +360,7 @@ module Vagrant
 			################################################################
 			def self.vm_up(vmname)	
 			
-				puts "CLIENTCONTROLLER::VN_UP"	
+					
 
 			  	command_block = Proc.new {					
 					
@@ -380,7 +391,7 @@ module Vagrant
 						end           
 				
 						raise RestException.new(404,"The machine #{vmname} does not exist") if (machine_names.empty?)						
-						pp "VM_UP #{machine_names}"
+						
 						machine_names
 
 					rescue Exception => e  	
@@ -494,7 +505,7 @@ module Vagrant
 		#################  VIRTUAL MACHINE HALT METHOD #################
 		################################################################
 		def self.vm_halt(vmname,force)
-			puts "CLIENTCONTROLLER::VN_HALT"
+			
 			force=(force=="true")?true:false;
 
 		  	command_block = Proc.new {
@@ -509,7 +520,7 @@ module Vagrant
 					end
 
 					raise RestException.new(404,"The machine #{vmname} does not exist") if (machine_names.empty?)						
-					pp "VM_HALT #{machine_names}"
+					
 					machine_names
 
 				rescue Exception => e  						
@@ -1013,19 +1024,37 @@ module Vagrant
           
           opres = Array.new
 
+          
+          
+
           aux=result.first          
+          
+
+
 
           opres[0]=aux["operation_status"]
           opres[1]=aux["operation_result"]
           
+          
+
           opres
       end
       
       def self.operation_queued_last          
           ensure_environment
           
-          @db.get_queued_last         
-           
+          opres = Array.new
+
+          result=@db.get_queued_last         
+          
+          result.each do |row|
+          	aux=Array.new
+          	aux[0]=row["operation_status"]
+          	aux[1]=row["operation_result"]
+          	opres << aux
+          end
+          
+          opres
       end
       
       

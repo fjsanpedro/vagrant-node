@@ -31,24 +31,17 @@ module ServerAPI
 		#before '^.*(^login).*' do
 	before %r{^(?!#{RouteManager.login_route}$)} do			
 	  content_type :json
-			  #FIXME REMOVE	
-        #puts "ENTRO BEFORE" 
-        #pp request.env
+			  
         token  = ""
         cookie = ""
         
-        #pp "TOKEN DESCAPADO = #{CGI::unescape(request.env['HTTP_CONTENT_MD5'])}"
+        
 
         
         cookie = request.cookies[COOKIE_TOKEN_ID]        
         token = CGI::unescape(request.env['HTTP_CONTENT_MD5']) if request.env['HTTP_CONTENT_MD5']!=nil 
         
-        #FIXME REMOVE
-        # pp "COOKIES = #{cookie}"
-        # pp "TOKEN = #{token}"
-#                                   
-        # pp "TIENE COOKIE " if (@session_table.has_key?(cookie))
-        # pp "CONTIENE TOKEN " if (challenged?(token))
+        
         
 		  if (!@session_table.has_key?(cookie)|| 
 		       !challenged?(token))			       				    		    
@@ -287,8 +280,8 @@ private
 		rescue => e          
 		#FIXME DELETE PUTS
 		 #puts "EN EXCEPCION"
-		 puts e.class
-		 puts e.message
+		 # puts e.class
+		 # puts e.message
 		 
 
 		 exception = ((e.class==RestException)? e:ExceptionMutator.new(e))           
@@ -317,7 +310,7 @@ private
 	      
 	      
 	      if (e.class==Vagrant::Errors::VirtualBoxNotDetected)
-	      	puts "******* SE HA GENERADO LA EXCEPCION VIRTUALBOXNOTDETECTED ******"
+	      	#puts "******* SE HA GENERADO LA EXCEPCION VIRTUALBOXNOTDETECTED ******"
 	      	
 	      	@env = ObManager.instance.reload_env
 
@@ -328,8 +321,8 @@ private
 			#system("vagrant nodeserver stop;sleep 10;vagrant nodeserver start")
 	      end
 
-	      puts e.class
-	      puts e.message
+	      # puts e.class
+	      # puts e.message
 	      
 	      exception = ((e.class==RestException)? e:ExceptionMutator.new(e))			      
 	      

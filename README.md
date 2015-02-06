@@ -8,7 +8,7 @@ With this plugin installed, the Vagrant environment can perform requests, that y
 This plugin has been developed in the context of the [Catedra SAES](http://www.catedrasaes.org) of the University of Murcia(Spain).
 
 ##Installation
-Requires Vagrant 1.2 and  MySql Server
+Requires Vagrant (minimum version 1.2.2) and MySql Server
 
 ```bash
 $ vagrant plugin install vagrant-node
