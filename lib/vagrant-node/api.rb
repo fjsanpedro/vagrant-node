@@ -115,6 +115,14 @@ module ServerAPI
 	get RouteManager.vm_info_route do		
 		execute(:vm_info,true,params[:vm])
 	end	
+
+	get RouteManager.provider_config_route do		
+		execute(:vm_provider_config,true,params[:vm])
+	end	
+
+	post RouteManager.provider_config_route do		
+		execute(:set_vm_provider_config,true,params[:vmname],params[:providers],params[:variables])
+	end	
 				
 
 	get RouteManager.vm_status_route do				

@@ -16,6 +16,8 @@ module Vagrant
         # end
       end        
 
+      
+
       raise Errors::NoEnvironmentError if !@env.root_path
 
       argv = parse_options(opts)

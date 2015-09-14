@@ -126,6 +126,11 @@ module RestRoutes
       		NODE_QUEUE_LAST_ROUTE
     	end
 		
+
+		def self.provider_config_route
+			VM_PROVIDER_CONFIG_ROUTE
+		end
+
 		
 
 		def self.node_info_url(host,port)
@@ -205,6 +210,12 @@ module RestRoutes
 			url[":vm"]=vmname
 			url="http://#{host}:#{port}#{url}"		
 		end		
+
+		def self.provider_config_url(host,port,vmname)			
+			url=String.new(provider_config_route)
+			url[":vm"]=vmname
+			url="http://#{host}:#{port}#{url}"		
+		end
 		
 		def self.vm_status_url(host,port,vmname=nil)	
 			url="http://#{host}:#{port}#{vm_status_all_route}"
@@ -325,6 +336,7 @@ module RestRoutes
 			VM_STATUS_ROUTE = "/api/vm/:vm/status"			
 			VM_INFO_ROUTE = "/api/vm/:vm/info"			
 			SSH_CONFIG_ROUTE = "/api/vm/:vm/sshconfig"
+			VM_PROVIDER_CONFIG_ROUTE = "/api/vm/:vm/providers"
 			
 			SNAPSHOTS_ALL_ROUTE = "/api/vm/snapshots"
 			VM_SNAPSHOTS_ROUTE = "/api/vm/:vm/snapshots"
