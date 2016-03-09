@@ -14,6 +14,18 @@ Requires Vagrant (minimum version 1.2.2) and MySql Server
 $ vagrant plugin install vagrant-node
 ```
 
+##Configuration 
+
+There is a configuration file located at ~/.vagrant.d/data/config.yml, where you can update the mysql connection settings.
+
+```
+---
+dbhostname: 127.0.0.1
+dbname: mysql
+dbuser: root
+dbpassword: root
+```
+
 ##Usage
 In order to start the service provided by *vagrant-node* do:
 

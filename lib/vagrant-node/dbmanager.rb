@@ -358,6 +358,7 @@ module DB
 				raise "The config file \""+data_dir.to_s + "/config.yml"+"\" doesn't exist" if !File.file?(data_dir.to_s + "/config.yml")
 			
 				config = YAML.load_file(data_dir.to_s + "/config.yml")
+				"Using:" + config.to_s
 				
 				raise 'Invalid configuration file' if (!config.has_key?(CONFIG_DBUSER) || 
 														!config.has_key?(CONFIG_DBPASSWORD) || 
