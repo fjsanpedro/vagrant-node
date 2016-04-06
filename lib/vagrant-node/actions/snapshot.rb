@@ -1,7 +1,7 @@
 require 'pp'
 require "rexml/document"
 require 'rubygems'
-require 'zip/zip'
+require 'zip'
 
 
 module Vagrant
